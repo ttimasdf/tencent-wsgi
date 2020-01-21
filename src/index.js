@@ -86,7 +86,10 @@ class TencentFlask extends Component {
     const tencentCloudFunctionOutputs = await tencentCloudFunction(inputs)
     const apigwParam = {
       serviceName: inputs.serviceName,
-      description: 'Serverless Framework tencent-flask Component',
+      description:
+        inputs.apigatewayConf && inputs.apigatewayConf.serviceDescription
+        ? inputs.apigatewayConf.serviceDescription
+        : 'Serverless Framework tencent-flask Component',
       serviceId: inputs.serviceId,
       region: inputs.region,
       protocols: inputs.apigatewayConf.protocols || ['http'],

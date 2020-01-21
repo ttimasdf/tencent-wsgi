@@ -75,12 +75,15 @@ def group_headers(headers):
     return new_headers
 
 
-def encode_query_string(event):
+def encode_query_string(event, use_raw_query_string=False):
     multi = event.get(u"multiValueQueryStringParameters")
     if multi:
         return url_encode(MultiDict((i, j) for i in multi for j in multi[i]))
     else:
-        return url_encode(event.get(u"queryStringParameters") or {})
+        return url_encode(event.get(
+            u"queryString" if use_raw_query_string
+            else u"queryStringParameters"
+        ) or {})
 
 
 def handle_request(app, event, context):
@@ -127,11 +130,13 @@ def handle_request(app, event, context):
     if isinstance(body, string_types):
         body = to_bytes(body, charset="utf-8")
 
+    use_raw_query_string = os.environ.get("USE_RAW_QUERY_STRING") == "true"
+
     environ = {
         "CONTENT_LENGTH": str(len(body)),
         "CONTENT_TYPE": headers.get(u"Content-Type", ""),
         "PATH_INFO": url_unquote(path_info),
-        "QUERY_STRING": encode_query_string(event),
+        "QUERY_STRING": encode_query_string(event, use_raw_query_string),
         "REMOTE_ADDR": event["requestContext"]
         .get(u"identity", {})
         .get(u"sourceIp", ""),
