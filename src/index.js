@@ -104,7 +104,11 @@ class TencentFlask extends Component {
           function: {
             isIntegratedResponse: true,
             functionName: tencentCloudFunctionOutputs.Name
-          }
+          },
+          serviceTimeout:
+            inputs.apigatewayConf && inputs.apigatewayConf.serviceTimeout
+            ? inputs.apigatewayConf.serviceTimeout
+            : 15
         }
       ]
     }
