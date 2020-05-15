@@ -30,6 +30,7 @@ class TencentFlask extends Component {
       `FlaskComponent_${random({ length: 6 })}`
     inputs.codeUri = ensureString(inputs.code, { isOptional: true }) || process.cwd()
     inputs.region = ensureString(inputs.region, { default: 'ap-guangzhou' })
+    inputs.namespace = ensureString(inputs.namespace, { default: 'default' })
     inputs.include = ensureIterable(inputs.include, { default: [], ensureItem: ensureString })
     inputs.exclude = ensureIterable(inputs.exclude, { default: [], ensureItem: ensureString })
     inputs.apigatewayConf = ensurePlainObject(inputs.apigatewayConf, { default: {} })
@@ -83,6 +84,7 @@ class TencentFlask extends Component {
     const tencentCloudFunction = await this.load('@serverless/tencent-scf')
     const tencentApiGateway = await this.load('@serverless/tencent-apigateway')
 
+    inputs.fromClientRemark = inputs.fromClientRemark || 'tencent-flask'
     const tencentCloudFunctionOutputs = await tencentCloudFunction(inputs)
     const apigwParam = {
       serviceName: inputs.serviceName,
@@ -103,14 +105,16 @@ class TencentFlask extends Component {
           method: 'ANY',
           function: {
             isIntegratedResponse: true,
-            functionName: tencentCloudFunctionOutputs.Name
+            functionName: tencentCloudFunctionOutputs.Name,
+            functionNamespace: inputs.namespace
           },
           serviceTimeout:
             inputs.apigatewayConf && inputs.apigatewayConf.serviceTimeout
             ? inputs.apigatewayConf.serviceTimeout
             : 15
         }
-      ]
+      ],
+      customDomain: inputs.apigatewayConf.customDomain
     }
 
     if (inputs.apigatewayConf && inputs.apigatewayConf.auth) {
@@ -120,6 +124,7 @@ class TencentFlask extends Component {
       apigwParam.endpoints[0].auth = inputs.apigatewayConf.auth
     }
 
+    apigwParam.fromClientRemark = inputs.fromClientRemark || 'tencent-flask'
     const tencentApiGatewayOutputs = await tencentApiGateway(apigwParam)
     const outputs = {
       region: inputs.region,
@@ -129,6 +134,9 @@ class TencentFlask extends Component {
         tencentApiGatewayOutputs.subDomain
       }/${tencentApiGatewayOutputs.environment}/`
     }
+    if (tencentApiGatewayOutputs.customDomains) {
+      outputs.customDomains = tencentApiGatewayOutputs.customDomains
+    }
 
     this.state = outputs
 
@@ -137,12 +145,15 @@ class TencentFlask extends Component {
     return outputs
   }
 
-  async remove() {
+  async remove(inputs = {}) {
+    const removeInput = {
+      fromClientRemark: inputs.fromClientRemark || 'tencent-flask'
+    }
     const tencentCloudFunction = await this.load('@serverless/tencent-scf')
     const tencentApiGateway = await this.load('@serverless/tencent-apigateway')
 
-    await tencentCloudFunction.remove()
-    await tencentApiGateway.remove()
+    await tencentCloudFunction.remove(removeInput)
+    await tencentApiGateway.remove(removeInput)
 
     return {}
   }

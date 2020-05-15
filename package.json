@@ -1,7 +1,7 @@
 {
   "name": "@serverless/tencent-flask",
   "description": "Tencent Cloud Flask Serverless Component",
-  "version": "0.1.7",
+  "version": "0.2.2",
   "main": "serverless.js",
   "publishConfig": {
     "access": "public"
@@ -47,8 +47,8 @@
   },
   "dependencies": {
     "@serverless/core": "^1.1.1",
-    "@serverless/tencent-apigateway": "^2.0.0",
-    "@serverless/tencent-scf": "^2.0.2",
+    "@serverless/tencent-apigateway": "^2.1.4",
+    "@serverless/tencent-scf": "^3.0.0",
     "@yugasun/python-requirements": "^0.1.2",
     "ext": "^1.4.0",
     "type": "^2.0.0"
